@@ -4,13 +4,13 @@ import { createFileRoute, redirect } from "@tanstack/react-router"
 import { type SubmitHandler, useForm } from "react-hook-form"
 import { FiMail } from "react-icons/fi"
 
-import { type ApiError, LoginService } from "@/client"
 import { Button } from "@/components/ui/button"
 import { Field } from "@/components/ui/field"
 import { InputGroup } from "@/components/ui/input-group"
 import { isLoggedIn } from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { emailPattern, handleError } from "@/utils"
+import { resetPassword } from "aws-amplify/auth"
 
 interface FormData {
   email: string
@@ -19,7 +19,7 @@ interface FormData {
 export const Route = createFileRoute("/recover-password")({
   component: RecoverPassword,
   beforeLoad: async () => {
-    if (isLoggedIn()) {
+    if (await isLoggedIn()) {
       throw redirect({
         to: "/",
       })
@@ -36,19 +36,15 @@ function RecoverPassword() {
   } = useForm<FormData>()
   const { showSuccessToast } = useCustomToast()
 
-  const recoverPassword = async (data: FormData) => {
-    await LoginService.recoverPassword({
-      email: data.email,
-    })
-  }
-
   const mutation = useMutation({
-    mutationFn: recoverPassword,
+    mutationFn: async (data: FormData) => {
+      return await resetPassword({ username: data.email })
+    },
     onSuccess: () => {
       showSuccessToast("Password recovery email sent successfully.")
       reset()
     },
-    onError: (err: ApiError) => {
+    onError: (err: Error) => {
       handleError(err)
     },
   })

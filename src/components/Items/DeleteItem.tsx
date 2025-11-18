@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { FiTrash2 } from "react-icons/fi"
 
-import { ItemsService } from "@/client"
 import {
   DialogActionTrigger,
   DialogBody,
@@ -16,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import useCustomToast from "@/hooks/useCustomToast"
+import { client } from "@/lib/amplify-client"
 
 const DeleteItem = ({ id }: { id: string }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -26,12 +26,12 @@ const DeleteItem = ({ id }: { id: string }) => {
     formState: { isSubmitting },
   } = useForm()
 
-  const deleteItem = async (id: string) => {
-    await ItemsService.deleteItem({ id: id })
-  }
-
   const mutation = useMutation({
-    mutationFn: deleteItem,
+    mutationFn: async (id: string) => {
+      const { data, errors } = await client.models.Item.delete({ id })
+      if (errors) throw new Error(errors[0].message)
+      return data
+    },
     onSuccess: () => {
       showSuccessToast("The item was deleted successfully")
       setIsOpen(false)

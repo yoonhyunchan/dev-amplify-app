@@ -11,7 +11,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { FiSearch } from "react-icons/fi"
 import { z } from "zod"
 
-import { ItemsService } from "@/client"
 import { ItemActionsMenu } from "@/components/Common/ItemActionsMenu"
 import AddItem from "@/components/Items/AddItem"
 import PendingItems from "@/components/Pending/PendingItems"
@@ -21,6 +20,7 @@ import {
   PaginationPrevTrigger,
   PaginationRoot,
 } from "@/components/ui/pagination.tsx"
+import { client } from "@/lib/amplify-client"
 
 const itemsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -30,8 +30,13 @@ const PER_PAGE = 5
 
 function getItemsQueryOptions({ page }: { page: number }) {
   return {
-    queryFn: () =>
-      ItemsService.readItems({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
+    queryFn: async () => {
+      const { data, errors } = await client.models.Item.list({
+        limit: PER_PAGE,
+      })
+      if (errors) throw new Error(errors[0].message)
+      return { data: data || [], count: data?.length || 0 }
+    },
     queryKey: ["items", { page }],
   }
 }

@@ -7,18 +7,21 @@ import {
 import { createRouter, RouterProvider } from "@tanstack/react-router"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
-import { ApiError, OpenAPI } from "./client"
 import { CustomProvider } from "./components/ui/provider"
 import { routeTree } from "./routeTree.gen"
+import "./amplify-config"
 
-OpenAPI.BASE = import.meta.env.VITE_API_URL
-OpenAPI.TOKEN = async () => {
-  return localStorage.getItem("access_token") || ""
+export class ApiError extends Error {
+  status?: number
+  constructor(message: string, status?: number) {
+    super(message)
+    this.name = "ApiError"
+    this.status = status
+  }
 }
 
 const handleApiError = (error: Error) => {
-  if (error instanceof ApiError && [401, 403].includes(error.status)) {
-    localStorage.removeItem("access_token")
+  if (error instanceof ApiError && error.status && [401, 403].includes(error.status)) {
     window.location.href = "/login"
   }
 }

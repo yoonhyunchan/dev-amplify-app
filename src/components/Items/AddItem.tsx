@@ -11,10 +11,14 @@ import { useState } from "react"
 import { type SubmitHandler, useForm } from "react-hook-form"
 import { FaPlus } from "react-icons/fa"
 
-import { type ItemCreate, ItemsService } from "@/client"
-import type { ApiError } from "@/client/core/ApiError"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
+import { client } from "@/lib/amplify-client"
+
+type ItemCreate = {
+  title: string
+  description?: string
+}
 import {
   DialogBody,
   DialogCloseTrigger,
@@ -45,14 +49,17 @@ const AddItem = () => {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: ItemCreate) =>
-      ItemsService.createItem({ requestBody: data }),
+    mutationFn: async (data: ItemCreate) => {
+      const { data: newItem, errors } = await client.models.Item.create(data)
+      if (errors) throw new Error(errors[0].message)
+      return newItem
+    },
     onSuccess: () => {
       showSuccessToast("Item created successfully.")
       reset()
       setIsOpen(false)
     },
-    onError: (err: ApiError) => {
+    onError: (err: Error) => {
       handleError(err)
     },
     onSettled: () => {

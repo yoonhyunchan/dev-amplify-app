@@ -1,12 +1,12 @@
 import { IconButton } from "@chakra-ui/react"
 import { BsThreeDotsVertical } from "react-icons/bs"
-import type { ItemPublic } from "@/client"
+import type { Item } from "@/lib/amplify-client"
 import DeleteItem from "../Items/DeleteItem"
 import EditItem from "../Items/EditItem"
 import { MenuContent, MenuRoot, MenuTrigger } from "../ui/menu"
 
 interface ItemActionsMenuProps {
-  item: ItemPublic
+  item: Item
 }
 
 export const ItemActionsMenu = ({ item }: ItemActionsMenuProps) => {

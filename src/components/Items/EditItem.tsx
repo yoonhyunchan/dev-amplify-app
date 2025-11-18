@@ -11,9 +11,9 @@ import { useState } from "react"
 import { type SubmitHandler, useForm } from "react-hook-form"
 import { FaExchangeAlt } from "react-icons/fa"
 
-import { type ApiError, type ItemPublic, ItemsService } from "@/client"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
+import { client, type Item } from "@/lib/amplify-client"
 import {
   DialogBody,
   DialogCloseTrigger,
@@ -27,7 +27,7 @@ import {
 import { Field } from "../ui/field"
 
 interface EditItemProps {
-  item: ItemPublic
+  item: Item
 }
 
 interface ItemUpdateForm {
@@ -54,14 +54,20 @@ const EditItem = ({ item }: EditItemProps) => {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: ItemUpdateForm) =>
-      ItemsService.updateItem({ id: item.id, requestBody: data }),
+    mutationFn: async (data: ItemUpdateForm) => {
+      const { data: updatedItem, errors } = await client.models.Item.update({
+        id: item.id,
+        ...data,
+      })
+      if (errors) throw new Error(errors[0].message)
+      return updatedItem
+    },
     onSuccess: () => {
       showSuccessToast("Item updated successfully.")
       reset()
       setIsOpen(false)
     },
-    onError: (err: ApiError) => {
+    onError: (err: Error) => {
       handleError(err)
     },
     onSettled: () => {
