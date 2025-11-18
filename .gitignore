@@ -1,5 +1,4 @@
 # Amplify Gen 2
-amplify/data/resource.ts
 .amplify/
 amplify_outputs.json
 amplifyconfiguration.json
