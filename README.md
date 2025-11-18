@@ -1,4 +1,3 @@
-test
 # FastAPI Project - Frontend
 
 
